@@ -9,6 +9,7 @@ TagManager:
   - Glass
   - Enviroment
   - Wall
+  - Sensitivity
   layers:
   - Default
   - TransparentFX
