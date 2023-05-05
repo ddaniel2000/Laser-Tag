@@ -20,18 +20,13 @@ public class Laser : MonoBehaviour
     [SerializeField]
     private GameObject _hitMarker;
     private List<GameObject> _hitPointMarkers = new List<GameObject>();
-
     private Color _startColor = new Color(1, 1, 1, 1);
     private Color _defaultColor = new Color(1, 1, 1, 1);
-
     private float _time;
 
-    public static event Action onWinLevel;
-
-
     private List<LineRenderer> _lineRenderers = new List<LineRenderer>();
-    [SerializeField]
-    private List<Collider> _colliders = new List<Collider>();
+
+    public static event Action onWinLevel;
 
     #region Lifecycle
 
@@ -71,6 +66,12 @@ public class Laser : MonoBehaviour
     #endregion
 
     #region Private
+
+    /// <summary>
+    /// Cast Laser 
+    /// </summary>
+    /// <param name="position"></param>
+    /// <param name="direction"></param>
     private void CastLaser(Vector3 position, Vector3 direction)
     {
 
@@ -143,34 +144,10 @@ public class Laser : MonoBehaviour
                     }
                     break;
 
-                }
-
-                
+                }              
             }
         }
     }
-
-
-
-    /// <summary>
-    /// Combine Colors 
-    /// </summary>
-    /// <param name="color1"></param>
-    /// <param name="color2"></param>
-    /// <returns></returns>
-    //public static Color CombineColors(Color color1, Color color2)
-    //{
-    //    Color result = new Color(1, 1, 1, 1);
-    //    if (color1 == Color.cyan && color2 == Color.yellow)
-    //    {
-    //        result = Color.green;
-    //    }
-    //    else
-    //    {
-    //        result = Color.Lerp(color1, color2, 0.5f);
-    //    } 
-    //    return result;
-    //}
 
     /// <summary>
     /// Get the color of Hit object
@@ -189,16 +166,35 @@ public class Laser : MonoBehaviour
 
             if (hit.transform.tag != "Win")
             {
-                _startColor = LerpViaHSB(_startColor, hitColor,0.5f);
 
-                //stiu ca e HardCoded dar nu imi dadea valorile RGB corecte, erau mereu variatii de 0.001
+                if(index == 0)
+                {
 
-                //Color Green from Cyen and Yellow
-                if (_startColor.r > 0.39f && _startColor.g == 1 && _startColor.b > 0.009f )
+                    _startColor = _defaultColor;
+
+                }
+                if(_startColor == Color.white)
+                {
+
+                    _startColor = hitColor;
+
+                }
+                else
+                {
+
+                    _startColor = LerpViaHSB(_startColor, hitColor, 0.5f);
+
+                }
+                
+
+                //stiu ca e HardCoded dar nu imi dadea valorile RGB corecte, erau mereu variatii de ~0.2
+
+                
+                if (_startColor.r < 0.39f && _startColor.g == 1 && _startColor.b < 0.009f )
                 {
                     _startColor = Color.green;
                 }
-                else if (_startColor.r == 1 && _startColor.g > 0.09f && _startColor.g < 0.12f && _startColor.b > 0f && _startColor.b < 0.01f)
+                else if (_startColor.r == 1 && _startColor.g > 0.09f && _startColor.g < 0.32f && _startColor.b > 0f && _startColor.b < 0.1f)
                 {
                     _startColor = Color.red;
                 }
@@ -207,20 +203,21 @@ public class Laser : MonoBehaviour
                     _startColor = Color.blue;
                 }
 
+                
                 for (int x = index; x < _maxBounces; x++)
                 {
 
-                    _lineRenderers[x +1].startColor = _startColor;
-                    _lineRenderers[x +1].endColor = _startColor;
+                    _lineRenderers[x + 1].startColor = _startColor;
+                    _lineRenderers[x + 1].endColor = _startColor;
 
                 }
-
             }
             else
             {
+
                 CompareColorsToWin(hitColor, _startColor);
-            }
-            
+
+            }            
         }
     }
 
@@ -287,7 +284,7 @@ public class Laser : MonoBehaviour
     /// </summary>
 
     [System.Serializable]
-    public struct HSBColor
+    private struct HSBColor
     {
         public float h;
         public float s;
@@ -460,7 +457,7 @@ public class Laser : MonoBehaviour
         }
 
     }
-    public Color LerpViaHSB(Color a, Color b, float t)
+    private Color LerpViaHSB(Color a, Color b, float t)
     {
         return HSBColor.Lerp(HSBColor.FromColor(a), HSBColor.FromColor(b), t).ToColor();
     }

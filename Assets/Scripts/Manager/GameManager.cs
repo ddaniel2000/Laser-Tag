@@ -19,35 +19,50 @@ public class GameManager : MonoBehaviour
     private Text _countdownText;
     [SerializeField]
     private GameObject _menuUi;
+    [SerializeField]
+    private AudioSource _audioSource;
 
     private int _countdown = 4;
-    private int _count = -1;
+    private int _levelIndex = -1;
 
     public static event Action onStartLevel;
 
-    #region Lifecycle
 
+    #region Subscribe/Unsubscribe Actions
     private void OnEnable()
     {
+
         Laser.onWinLevel += EndLevel;
+        Laser.onWinLevel += StartTheMusic;
+        
     }
 
     private void OnDisable()
     {
+
         Laser.onWinLevel -= EndLevel;
+        Laser.onWinLevel -= StartTheMusic;
 
     }
 
+    #endregion
+
+    #region Lifecycle
     void Start()
     {
+
         StartCoroutine(OnLevelStart());
+        
     }
 
     private void Update()
     {
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+
             OnGamePaused();
+
         }
     }
     #endregion
@@ -73,8 +88,10 @@ public class GameManager : MonoBehaviour
     {
 
         _countdownText.enabled = true;
-        _count++;
-        
+        _levelIndex++;
+        PlayerPrefs.SetInt("Level",_levelIndex);
+        PlayerPrefs.Save();
+
         // Start the Countdown
         while (_countdown > 1)
         {
@@ -89,16 +106,14 @@ public class GameManager : MonoBehaviour
 
             if(_laser.enabled != true)
             {
-                Instantiate(_levels[_count], _levelsParent);
+
+                Instantiate(_levels[_levelIndex], _levelsParent);
                 _laser.enabled = true;
                 _laserGameObject.SetActive(true);
-                onStartLevel?.Invoke();
-               
+                onStartLevel?.Invoke();              
                 _countdownText.enabled = false;
-            }
-            
 
-            
+            }              
         }
     }
 
@@ -114,10 +129,10 @@ public class GameManager : MonoBehaviour
         _laser.enabled = false;
      
 
-        if (_count == _levels.Length - 1)
+        if (_levelIndex == _levels.Length - 1)
         {
 
-            _count = -1;
+            _levelIndex = -1;
 
         }
 
@@ -126,19 +141,47 @@ public class GameManager : MonoBehaviour
 
     }
 
-    private void OnGamePaused()
+    /// <summary>
+    /// Play the "Win" music
+    /// </summary>
+    private void StartTheMusic()
+    {
+
+        _audioSource.Play();
+
+    }
+
+    #endregion
+
+    #region Public
+
+    /// <summary>
+    /// Pause Game
+    /// </summary>
+    public void OnGamePaused()
     {
         
         _menuUi.SetActive(!_menuUi.activeSelf);
-        if(_menuUi.activeSelf == false)
-        {
-            Time.timeScale = 0;
-        }
-        else
-        {
-            Time.timeScale = 1f;
-        }
-        
+
+    }
+
+    /// <summary>
+    /// Start a New Game with no data saved
+    /// </summary>
+    public void NewGame()
+    {
+
+        _levelIndex = -1;
+
+    }
+
+    /// <summary>
+    /// Start game from the Last Saved level
+    /// </summary>
+    public void ContinueGame()
+    {
+
+        _levelIndex = PlayerPrefs.GetInt("Level") -1;
 
     }
 
